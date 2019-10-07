@@ -28,4 +28,9 @@ public class DyPlayerController extends AbsPlayerController {
     public void reset() {
 
     }
+
+    @Override
+    public void onPlayStateChanged(int mCurrentState) {
+
+    }
 }

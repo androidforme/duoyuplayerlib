@@ -31,4 +31,5 @@ public abstract class AbsPlayerController extends FrameLayout {
      */
     public abstract void reset();
 
+    public abstract void onPlayStateChanged(int mCurrentState);
 }
