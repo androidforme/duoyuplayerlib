@@ -34,14 +34,14 @@ import com.wangduoyu.lib.duoyuplayerlib.interfaces.listener.OnSurfaceListener;
  * </pre>
  */
 @SuppressLint("NewApi")
-public class VideoTextureView extends TextureView implements TextureView.SurfaceTextureListener {
+public class DuoYuTextureView extends TextureView implements TextureView.SurfaceTextureListener {
 
     private int videoHeight;
     private int videoWidth;
     private OnSurfaceListener onSurfaceListener;
 
 
-    public VideoTextureView(Context context) {
+    public DuoYuTextureView(Context context) {
         super(context);
     }
 
@@ -125,7 +125,7 @@ public class VideoTextureView extends TextureView implements TextureView.Surface
      * @param frameLayout               布局
      * @param textureView               textureView
      */
-    public void addTextureView(FrameLayout frameLayout , VideoTextureView textureView){
+    public void addTextureView(FrameLayout frameLayout , DuoYuTextureView textureView){
         frameLayout.removeView(textureView);
         FrameLayout.LayoutParams params = new FrameLayout.LayoutParams(
                 ViewGroup.LayoutParams.MATCH_PARENT,

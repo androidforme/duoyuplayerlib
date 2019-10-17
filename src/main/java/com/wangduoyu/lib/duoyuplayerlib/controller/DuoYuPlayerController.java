@@ -7,9 +7,9 @@ import androidx.annotation.NonNull;
 
 import com.wangduoyu.lib.duoyuplayerlib.R;
 
-public class DyPlayerController extends AbsPlayerController {
+public class DuoYuPlayerController extends AbsPlayerController {
 
-    public DyPlayerController(@NonNull Context context) {
+    public DuoYuPlayerController(@NonNull Context context) {
         super(context);
         init();
     }
