@@ -43,6 +43,7 @@ public class DuoYuPlayer extends FrameLayout implements IPlayer {
     private DuoYuTextureView mTextureView;
     private SurfaceTexture mSurfaceTexture;
     private Surface mSurface;
+    private int mBufferPercentage;
 
     private AbsPlayerController mController;
 
@@ -67,7 +68,7 @@ public class DuoYuPlayer extends FrameLayout implements IPlayer {
 
     @Override
     public void setUp(String url, Map<String, String> headers) {
-        DuoYuLog.d( " url = " + url);
+        DuoYuLog.d(" url = " + url);
         mUrl = url;
         mHeaders = headers;
     }
@@ -126,7 +127,7 @@ public class DuoYuPlayer extends FrameLayout implements IPlayer {
                 default:
                     mMediaPlayer = new IjkMediaPlayer();
                     //todo 需要去细化ijk播放器
-                  //  createIjkMediaPlayer();
+                    //  createIjkMediaPlayer();
                     break;
             }
             //设置音频流类型
@@ -138,7 +139,7 @@ public class DuoYuPlayer extends FrameLayout implements IPlayer {
         DuoYuLog.d();
         if (mTextureView == null) {
             mTextureView = new DuoYuTextureView(mContext);
-            mTextureView.setSurfaceTextureListener(new TextureView.SurfaceTextureListener(){
+            mTextureView.setSurfaceTextureListener(new TextureView.SurfaceTextureListener() {
 
                 @Override
                 public void onSurfaceTextureAvailable(SurfaceTexture surface, int width, int height) {
@@ -166,7 +167,7 @@ public class DuoYuPlayer extends FrameLayout implements IPlayer {
                 @Override
                 public void onSurfaceTextureUpdated(SurfaceTexture surface) {
                     //Log 太多
-                  //  DuoYuLog.d(" surface = " + surface);
+                    //  DuoYuLog.d(" surface = " + surface);
                 }
             });
         }
@@ -217,7 +218,7 @@ public class DuoYuPlayer extends FrameLayout implements IPlayer {
      *
      * @param playerType IjkPlayer or MediaPlayer.
      */
-    public void setPlayerType(int playerType) {
+    public void setPlayerType(@ConstantKeys.PlayerType int playerType) {
         mPlayerType = playerType;
     }
 
@@ -232,11 +233,37 @@ public class DuoYuPlayer extends FrameLayout implements IPlayer {
     }
 
     @Override
+    public long getDuration() {
+        return mMediaPlayer != null ? mMediaPlayer.getDuration() : 0;
+    }
+
+    @Override
+    public long getCurrentPosition() {
+        return mMediaPlayer != null ? mMediaPlayer.getCurrentPosition() : 0;
+    }
+
+    @Override
+    public int getBufferPercentage() {
+        return mBufferPercentage;
+    }
+
+    @Override
     public void release() {
 
     }
 
-
+    /**
+     * 获取播放速度
+     *
+     * @return 速度
+     */
+    @Override
+    public long getTcpSpeed() {
+        if (mMediaPlayer instanceof IjkMediaPlayer) {
+            return ((IjkMediaPlayer) mMediaPlayer).getTcpSpeed();
+        }
+        return 0;
+    }
 
 
     private IMediaPlayer.OnPreparedListener mOnPreparedListener
@@ -290,7 +317,7 @@ public class DuoYuPlayer extends FrameLayout implements IPlayer {
             = new IMediaPlayer.OnInfoListener() {
         @Override
         public boolean onInfo(IMediaPlayer mp, int what, int extra) {
-            DuoYuLog.d(" mp：" + mp +" what：" + what + ", extra: " + extra);
+            DuoYuLog.d(" mp：" + mp + " what：" + what + ", extra: " + extra);
             if (what == IMediaPlayer.MEDIA_INFO_VIDEO_RENDERING_START) {
                 // 播放器开始渲染
                 mCurrentState = ConstantKeys.CurrentState.STATE_PLAYING;
@@ -331,7 +358,8 @@ public class DuoYuPlayer extends FrameLayout implements IPlayer {
             = new IMediaPlayer.OnBufferingUpdateListener() {
         @Override
         public void onBufferingUpdate(IMediaPlayer mp, int percent) {
-          //  mBufferPercentage = percent;
+            DuoYuLog.d(" percent = " + percent);
+            mBufferPercentage = percent;
         }
     };
 

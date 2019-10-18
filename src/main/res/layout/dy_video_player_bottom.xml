@@ -52,7 +52,18 @@
         android:minHeight="1.5dp"
         android:progressDrawable="@drawable/seek_progress"
         android:thumb="@drawable/seek_thumb"/>
-
+    <TextView
+        android:id="@+id/clarity"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:paddingStart="1dp"
+        android:paddingEnd="4dp"
+        android:text="超清"
+        android:textColor="@android:color/white"
+        android:textSize="14sp"
+        android:visibility="gone"
+        android:paddingLeft="1dp"
+        android:paddingRight="4dp" />
     <ImageView
         android:id="@+id/full_screen"
         android:layout_width="28dp"

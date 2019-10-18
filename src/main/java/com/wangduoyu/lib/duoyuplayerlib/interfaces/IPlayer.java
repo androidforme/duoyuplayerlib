@@ -34,12 +34,37 @@ public interface IPlayer {
     void setSpeed(float speed);
 
 
+    /**
+     * 获取办法给总时长，毫秒
+     * @return 视频总时长ms
+     */
+    long getDuration();
 
+    /**
+     * 获取当前播放的位置，毫秒
+     *
+     * @return 当前播放位置，ms
+     */
+    long getCurrentPosition();
+
+    /**
+     * 获取视频缓冲百分比
+     *
+     * @return 缓冲白百分比
+     */
+    int getBufferPercentage();
 
     /**
      * 释放IPlayer，释放后，内部的播放器被释放掉，同时如果在全屏、小窗口模式下都会退出
      * 并且控制器的UI也应该恢复到最初始的状态.
      */
     void release();
+
+    /**
+     * 获取网络加载速度
+     *
+     * @return 网络加载速度
+     */
+    long getTcpSpeed();
 
 }

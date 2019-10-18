@@ -4,8 +4,11 @@
     android:layout_width="match_parent"
     android:layout_height="match_parent">
 
-
+    <!--加载动画view-->
+    <include layout="@layout/dy_video_player_loading"/>
     <!--底部控制区-->
     <include layout="@layout/dy_video_player_bottom"/>
 
+    <!--底部视频播放进度条-->
+    <include layout="@layout/dy_video_player_line"/>
 </RelativeLayout>
