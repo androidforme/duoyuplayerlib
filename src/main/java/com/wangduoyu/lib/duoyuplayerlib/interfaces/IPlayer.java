@@ -24,7 +24,15 @@ public interface IPlayer {
      */
     void start(long position);
 
+    /**
+     * 重新播放，播放器被暂停、播放错误、播放完成后，需要调用此方法重新播放
+     */
+    void restart();
 
+    /**
+     * 暂停播放
+     */
+    void pause();
 
     /**
      * 设置播放速度，目前只有IjkPlayer有效果，原生MediaPlayer暂不支持
@@ -66,5 +74,18 @@ public interface IPlayer {
      * @return 网络加载速度
      */
     long getTcpSpeed();
+
+
+
+    /**------------------以下9个方法是播放器在当前的播放状态----------------------------*/
+    boolean isIdle();
+    boolean isPreparing();
+    boolean isPrepared();
+    boolean isBufferingPlaying();
+    boolean isBufferingPaused();
+    boolean isPlaying();
+    boolean isPaused();
+    boolean isError();
+    boolean isCompleted();
 
 }

@@ -228,6 +228,46 @@ public class DuoYuPlayer extends FrameLayout implements IPlayer {
     }
 
     @Override
+    public void restart() {
+        if (mCurrentState == ConstantKeys.CurrentState.STATE_PAUSED) {
+            //如果是暂停状态，那么则继续播放
+            mMediaPlayer.start();
+            mCurrentState = ConstantKeys.CurrentState.STATE_PLAYING;
+            mController.onPlayStateChanged(mCurrentState);
+        } else if (mCurrentState == ConstantKeys.CurrentState.STATE_BUFFERING_PAUSED) {
+            //如果是缓存暂停状态，那么则继续播放
+            mMediaPlayer.start();
+            mCurrentState = ConstantKeys.CurrentState.STATE_BUFFERING_PLAYING;
+            mController.onPlayStateChanged(mCurrentState);
+        } else if (mCurrentState == ConstantKeys.CurrentState.STATE_COMPLETED
+                || mCurrentState == ConstantKeys.CurrentState.STATE_ERROR) {
+            //如果是完成播放或者播放错误，则重新播放
+            mMediaPlayer.reset();
+            openMediaPlayer();
+        } else {
+            DuoYuLog.d("VideoPlayer在mCurrentState == " + mCurrentState + "时不能调用restart()方法.");
+        }
+    }
+
+    /**
+     * 暂停播放
+     */
+    @Override
+    public void pause() {
+        if (mCurrentState == ConstantKeys.CurrentState.STATE_PLAYING) {
+            //如果是播放状态，那么则暂停播放
+            mMediaPlayer.pause();
+            mCurrentState = ConstantKeys.CurrentState.STATE_PAUSED;
+            mController.onPlayStateChanged(mCurrentState);
+        } else if (mCurrentState == ConstantKeys.CurrentState.STATE_BUFFERING_PLAYING) {
+            //如果是正在缓冲状态，那么则暂停暂停缓冲
+            mMediaPlayer.pause();
+            mCurrentState = ConstantKeys.CurrentState.STATE_BUFFERING_PAUSED;
+            mController.onPlayStateChanged(mCurrentState);
+        }
+    }
+
+    @Override
     public void setSpeed(float speed) {
 
     }
@@ -264,6 +304,96 @@ public class DuoYuPlayer extends FrameLayout implements IPlayer {
         }
         return 0;
     }
+
+    /**
+     * 判断是否开始播放
+     * @return                      true表示播放未开始
+     */
+    @Override
+    public boolean isIdle() {
+        return mCurrentState == ConstantKeys.CurrentState.STATE_IDLE;
+    }
+
+
+    /**
+     * 判断视频是否播放准备中
+     * @return                      true表示播放准备中
+     */
+    @Override
+    public boolean isPreparing() {
+        return mCurrentState == ConstantKeys.CurrentState.STATE_PREPARING;
+    }
+
+
+    /**
+     * 判断视频是否准备就绪
+     * @return                      true表示播放准备就绪
+     */
+    @Override
+    public boolean isPrepared() {
+        return mCurrentState == ConstantKeys.CurrentState.STATE_PREPARED;
+    }
+
+
+    /**
+     * 判断视频是否正在缓冲(播放器正在播放时，缓冲区数据不足，进行缓冲，缓冲区数据足够后恢复播放)
+     * @return                      true表示正在缓冲
+     */
+    @Override
+    public boolean isBufferingPlaying() {
+        return mCurrentState == ConstantKeys.CurrentState.STATE_BUFFERING_PLAYING;
+    }
+
+
+    /**
+     * 判断是否是否缓冲暂停
+     * @return                      true表示缓冲暂停
+     */
+    @Override
+    public boolean isBufferingPaused() {
+        return mCurrentState == ConstantKeys.CurrentState.STATE_BUFFERING_PAUSED;
+    }
+
+
+    /**
+     * 判断视频是否正在播放
+     * @return                      true表示正在播放
+     */
+    @Override
+    public boolean isPlaying() {
+        return mCurrentState == ConstantKeys.CurrentState.STATE_PLAYING;
+    }
+
+
+    /**
+     * 判断视频是否暂停播放
+     * @return                      true表示暂停播放
+     */
+    @Override
+    public boolean isPaused() {
+        return mCurrentState == ConstantKeys.CurrentState.STATE_PAUSED;
+    }
+
+
+    /**
+     * 判断视频是否播放错误
+     * @return                      true表示播放错误
+     */
+    @Override
+    public boolean isError() {
+        return mCurrentState == ConstantKeys.CurrentState.STATE_ERROR;
+    }
+
+
+    /**
+     * 判断视频是否播放完成
+     * @return                      true表示播放完成
+     */
+    @Override
+    public boolean isCompleted() {
+        return mCurrentState == ConstantKeys.CurrentState.STATE_COMPLETED;
+    }
+
 
 
     private IMediaPlayer.OnPreparedListener mOnPreparedListener

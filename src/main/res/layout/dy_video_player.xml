@@ -6,6 +6,8 @@
 
     <!--加载动画view-->
     <include layout="@layout/dy_video_player_loading"/>
+    <!--顶部控制区-->
+    <include layout="@layout/dy_video_player_top"/>
     <!--底部控制区-->
     <include layout="@layout/dy_video_player_bottom"/>
 

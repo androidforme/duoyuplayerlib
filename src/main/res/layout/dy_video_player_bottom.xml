@@ -13,9 +13,9 @@
 
     <ImageView
         android:id="@+id/restart_or_pause"
-        android:layout_width="24dp"
-        android:layout_height="24dp"
-        android:src="@drawable/ic_player_start"/>
+        android:layout_width="20dp"
+        android:layout_height="20dp"
+        android:src="@drawable/icon_play"/>
     <TextView
         android:id="@+id/position"
         android:layout_width="wrap_content"
@@ -23,23 +23,10 @@
         android:layout_marginStart="8dp"
         android:text="00:00"
         android:textColor="@android:color/white"
-        android:textSize="12sp"
-        android:layout_marginLeft="8dp" />
-    <TextView
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:text=" / "
-        android:textColor="@android:color/white"
-        android:textSize="12sp"/>
-    <TextView
-        android:id="@+id/duration"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_marginEnd="8dp"
-        android:text="00:00"
-        android:textColor="@android:color/white"
-        android:textSize="12sp"
-        android:layout_marginRight="8dp" />
+        android:textSize="14sp"
+        android:layout_marginEnd="8dp" />
+
+
     <SeekBar
         android:id="@+id/seek"
         android:layout_width="0dp"
@@ -52,22 +39,21 @@
         android:minHeight="1.5dp"
         android:progressDrawable="@drawable/seek_progress"
         android:thumb="@drawable/seek_thumb"/>
+
     <TextView
-        android:id="@+id/clarity"
+        android:id="@+id/duration"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:paddingStart="1dp"
-        android:paddingEnd="4dp"
-        android:text="超清"
+        android:layout_marginStart="8dp"
+        android:text="00:00"
         android:textColor="@android:color/white"
         android:textSize="14sp"
-        android:visibility="gone"
-        android:paddingLeft="1dp"
-        android:paddingRight="4dp" />
+        android:layout_marginEnd="8dp"/>
+
     <ImageView
         android:id="@+id/full_screen"
-        android:layout_width="28dp"
-        android:layout_height="28dp"
-        android:src="@drawable/ic_player_open"/>
+        android:layout_width="20dp"
+        android:layout_height="20dp"
+        android:src="@drawable/icon_biggest"/>
 
 </LinearLayout>

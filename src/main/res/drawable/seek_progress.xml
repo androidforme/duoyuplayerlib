@@ -3,25 +3,25 @@
     <item android:id="@android:id/background">
         <shape>
             <solid android:color="#7dffffff" />
-            <size android:height="2dp" />
-            <corners android:radius="2dp" />
+            <size android:height="1dp" />
+            <corners android:radius="1dp" />
         </shape>
     </item>
     <item android:id="@android:id/secondaryProgress">
         <clip>
             <shape>
-                <solid android:color="#ffffffff" />
-                <size android:height="2dp" />
-                <corners android:radius="2dp" />
+                <solid android:color="#ff000000" />
+                <size android:height="1dp" />
+                <corners android:radius="1dp" />
             </shape>
         </clip>
     </item>
     <item android:id="@android:id/progress">
         <clip>
             <shape>
-                <solid android:color="#FF7000" />
-                <size android:height="2dp" />
-                <corners android:radius="2dp" />
+                <solid android:color="@android:color/holo_red_dark" />
+                <size android:height="1dp" />
+                <corners android:radius="1dp" />
             </shape>
         </clip>
     </item>
