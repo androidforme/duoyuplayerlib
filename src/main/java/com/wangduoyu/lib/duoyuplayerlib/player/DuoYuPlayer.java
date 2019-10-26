@@ -1,10 +1,13 @@
 package com.wangduoyu.lib.duoyuplayerlib.player;
 
+import android.app.Activity;
 import android.content.Context;
+import android.content.pm.ActivityInfo;
 import android.graphics.Color;
 import android.graphics.SurfaceTexture;
 import android.media.AudioManager;
 import android.net.Uri;
+import android.os.Build;
 import android.util.AttributeSet;
 import android.view.Gravity;
 import android.view.Surface;
@@ -12,11 +15,14 @@ import android.view.TextureView;
 import android.view.ViewGroup;
 import android.widget.FrameLayout;
 
+import com.gyf.immersionbar.BarHide;
+import com.gyf.immersionbar.ImmersionBar;
 import com.wangduoyu.lib.duoyuplayerlib.constant.ConstantKeys;
 import com.wangduoyu.lib.duoyuplayerlib.controller.AbsPlayerController;
 import com.wangduoyu.lib.duoyuplayerlib.interfaces.IPlayer;
 import com.wangduoyu.lib.duoyuplayerlib.manager.DuoYuPlayerManager;
 import com.wangduoyu.lib.duoyuplayerlib.utils.DuoYuLog;
+import com.wangduoyu.lib.duoyuplayerlib.utils.VideoPlayerUtils;
 import com.wangduoyu.lib.duoyuplayerlib.view.DuoYuTextureView;
 
 import java.io.IOException;
@@ -46,6 +52,12 @@ public class DuoYuPlayer extends FrameLayout implements IPlayer {
     private int mBufferPercentage;
 
     private AbsPlayerController mController;
+
+    /**
+     * 播放模式，普通模式，小窗口模式，正常模式等等
+     * 存在局限性：比如小窗口下的正在播放模式，那么mCurrentMode就是STATE_PLAYING，而不是MODE_TINY_WINDOW并存
+     **/
+    private int mCurrentMode = ConstantKeys.PlayMode.MODE_NORMAL;
 
     public DuoYuPlayer(Context context) {
         this(context, null);
@@ -287,10 +299,69 @@ public class DuoYuPlayer extends FrameLayout implements IPlayer {
         return mBufferPercentage;
     }
 
+    /**
+     * 进入全屏模式
+     * 全屏，将mContainer(内部包含mTextureView和mController)从当前容器中移除，并添加到android.R.content中.
+     * 切换横屏时需要在manifest的activity标签下添加android:configChanges="orientation|keyboardHidden|screenSize"配置，
+     * 以避免Activity重新走生命周期
+     */
     @Override
-    public void release() {
-
+    public void enterFullScreen() {
+        if (mCurrentMode == ConstantKeys.PlayMode.MODE_FULL_SCREEN){
+            return;
+        }
+        // 隐藏ActionBar、状态栏，并横屏
+        ImmersionBar.with(VideoPlayerUtils.scanForActivity(mContext)).hideBar(BarHide.FLAG_HIDE_BAR).init();
+        //设置更改此页面的所需方向。如果页面当前位于前台或以其他方式影响方向
+        //则屏幕将立即更改(可能导致重新启动该页面)。否则，这将在下一次页面可见时使用。
+        VideoPlayerUtils.scanForActivity(mContext).setRequestedOrientation(
+                ActivityInfo.SCREEN_ORIENTATION_LANDSCAPE);
+        //找到contentView
+        ViewGroup contentView = VideoPlayerUtils.scanForActivity(mContext)
+                .findViewById(android.R.id.content);
+        if (mCurrentMode == ConstantKeys.PlayMode.MODE_TINY_WINDOW) {
+            contentView.removeView(mContainer);
+        } else {
+            this.removeView(mContainer);
+        }
+        LayoutParams params = new LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT,
+                ViewGroup.LayoutParams.MATCH_PARENT);
+        contentView.addView(mContainer, params);
+        mCurrentMode = ConstantKeys.PlayMode.MODE_FULL_SCREEN;
+        mController.onPlayModeChanged(mCurrentMode);
+        DuoYuLog.d("MODE_FULL_SCREEN");
     }
+
+
+    /**
+     * 退出全屏模式
+     * 退出全屏，移除mTextureView和mController，并添加到非全屏的容器中。
+     * 切换竖屏时需要在manifest的activity标签下添加
+     * android:configChanges="orientation|keyboardHidden|screenSize"配置，
+     * 以避免Activity重新走生命周期.
+     *
+     * @return true退出全屏.
+     */
+    @Override
+    public boolean exitFullScreen() {
+        if (mCurrentMode == ConstantKeys.PlayMode.MODE_FULL_SCREEN) {
+            ImmersionBar.with(VideoPlayerUtils.scanForActivity(mContext)).hideBar(BarHide.FLAG_SHOW_BAR).init();
+            VideoPlayerUtils.scanForActivity(mContext).setRequestedOrientation(ActivityInfo.SCREEN_ORIENTATION_PORTRAIT);
+            ViewGroup contentView = VideoPlayerUtils.scanForActivity(mContext).findViewById(android.R.id.content);
+            //将视图移除
+            contentView.removeView(mContainer);
+            //重新添加到当前视图
+            LayoutParams params = new LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.MATCH_PARENT);
+            this.addView(mContainer, params);
+            mCurrentMode = ConstantKeys.PlayMode.MODE_NORMAL;
+            mController.onPlayModeChanged(mCurrentMode);
+            DuoYuLog.d("MODE_NORMAL");
+            this.setOnKeyListener(null);
+            return true;
+        }
+        return false;
+    }
+
 
     /**
      * 获取播放速度
@@ -306,8 +377,24 @@ public class DuoYuPlayer extends FrameLayout implements IPlayer {
     }
 
     /**
+     * 设置播放位置
+     *
+     * @param pos 播放位置
+     */
+    @Override
+    public void seekTo(long pos) {
+        if (pos < 0) {
+            pos = 0;
+        }
+        if (mMediaPlayer != null) {
+            mMediaPlayer.seekTo(pos);
+        }
+    }
+
+    /**
      * 判断是否开始播放
-     * @return                      true表示播放未开始
+     *
+     * @return true表示播放未开始
      */
     @Override
     public boolean isIdle() {
@@ -317,7 +404,8 @@ public class DuoYuPlayer extends FrameLayout implements IPlayer {
 
     /**
      * 判断视频是否播放准备中
-     * @return                      true表示播放准备中
+     *
+     * @return true表示播放准备中
      */
     @Override
     public boolean isPreparing() {
@@ -327,7 +415,8 @@ public class DuoYuPlayer extends FrameLayout implements IPlayer {
 
     /**
      * 判断视频是否准备就绪
-     * @return                      true表示播放准备就绪
+     *
+     * @return true表示播放准备就绪
      */
     @Override
     public boolean isPrepared() {
@@ -337,7 +426,8 @@ public class DuoYuPlayer extends FrameLayout implements IPlayer {
 
     /**
      * 判断视频是否正在缓冲(播放器正在播放时，缓冲区数据不足，进行缓冲，缓冲区数据足够后恢复播放)
-     * @return                      true表示正在缓冲
+     *
+     * @return true表示正在缓冲
      */
     @Override
     public boolean isBufferingPlaying() {
@@ -347,7 +437,8 @@ public class DuoYuPlayer extends FrameLayout implements IPlayer {
 
     /**
      * 判断是否是否缓冲暂停
-     * @return                      true表示缓冲暂停
+     *
+     * @return true表示缓冲暂停
      */
     @Override
     public boolean isBufferingPaused() {
@@ -357,7 +448,8 @@ public class DuoYuPlayer extends FrameLayout implements IPlayer {
 
     /**
      * 判断视频是否正在播放
-     * @return                      true表示正在播放
+     *
+     * @return true表示正在播放
      */
     @Override
     public boolean isPlaying() {
@@ -367,7 +459,8 @@ public class DuoYuPlayer extends FrameLayout implements IPlayer {
 
     /**
      * 判断视频是否暂停播放
-     * @return                      true表示暂停播放
+     *
+     * @return true表示暂停播放
      */
     @Override
     public boolean isPaused() {
@@ -377,7 +470,8 @@ public class DuoYuPlayer extends FrameLayout implements IPlayer {
 
     /**
      * 判断视频是否播放错误
-     * @return                      true表示播放错误
+     *
+     * @return true表示播放错误
      */
     @Override
     public boolean isError() {
@@ -387,13 +481,113 @@ public class DuoYuPlayer extends FrameLayout implements IPlayer {
 
     /**
      * 判断视频是否播放完成
-     * @return                      true表示播放完成
+     *
+     * @return true表示播放完成
      */
     @Override
     public boolean isCompleted() {
         return mCurrentState == ConstantKeys.CurrentState.STATE_COMPLETED;
     }
 
+    /**
+     * 判断视频是否播放全屏
+     * @return                      true表示播放全屏
+     */
+    @Override
+    public boolean isFullScreen() {
+        return mCurrentMode == ConstantKeys.PlayMode.MODE_FULL_SCREEN;
+    }
+
+
+    /**
+     * 判断视频是否播放小窗口
+     * @return                      true表示播放小窗口
+     */
+    @Override
+    public boolean isTinyWindow() {
+        return mCurrentMode == ConstantKeys.PlayMode.MODE_TINY_WINDOW;
+    }
+
+
+    /**
+     * 判断视频是否正常播放
+     * @return                      true表示正常播放
+     */
+    @Override
+    public boolean isNormal() {
+        return mCurrentMode == ConstantKeys.PlayMode.MODE_NORMAL;
+    }
+
+    @Override
+    public void releasePlayer() {
+        if (mAudioManager != null) {
+            //放弃音频焦点。使以前的焦点所有者(如果有的话)接收焦点。
+            mAudioManager.abandonAudioFocus(null);
+            //置空
+            mAudioManager = null;
+        }
+        if (mMediaPlayer != null) {
+            //释放视频焦点
+            mMediaPlayer.release();
+            mMediaPlayer = null;
+        }
+        if (mContainer != null) {
+            //从视图中移除TextureView
+            mContainer.removeView(mTextureView);
+        }
+        if (mSurface != null) {
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.ICE_CREAM_SANDWICH) {
+                mSurface.release();
+            }
+            mSurface = null;
+        }
+        //如果SurfaceTexture不为null，则释放
+        if (mSurfaceTexture != null) {
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.ICE_CREAM_SANDWICH) {
+                mSurfaceTexture.release();
+            }
+            mSurfaceTexture = null;
+        }
+        mCurrentState = ConstantKeys.CurrentState.STATE_IDLE;
+    }
+
+    /**
+     * 释放，内部的播放器被释放掉，同时如果在全屏、小窗口模式下都会退出
+     * 逻辑
+     * 1.先保存播放位置
+     * 2.退出全屏或小窗口，回复播放模式为正常模式
+     * 3.释放播放器
+     * 4.恢复控制器
+     * 5.gc回收
+     */
+    @Override
+    public void release() {
+        // 保存播放位置，当正在播放时，缓冲时，缓冲暂停时，暂停时 TODO
+        if (isPlaying() || isBufferingPlaying() || isBufferingPaused() || isPaused()) {
+            //  VideoPlayerUtils.savePlayPosition(mContext, mUrl, getCurrentPosition());
+        } else if (isCompleted()) {
+            //如果播放完成，则保存播放位置为0，也就是初始位置 TODO
+            //  VideoPlayerUtils.savePlayPosition(mContext, mUrl, 0);
+        }
+        // 退出全屏或小窗口 TODO
+//        if (isFullScreen()) {
+//            exitFullScreen();
+//        }
+//        if (isTinyWindow()) {
+//            exitTinyWindow();
+//        }
+//        mCurrentMode = ConstantKeys.PlayMode.MODE_NORMAL;
+
+        // 释放播放器
+        releasePlayer();
+
+        // 恢复控制器
+        if (mController != null) {
+            mController.reset();
+        }
+        // gc回收
+        Runtime.getRuntime().gc();
+    }
 
 
     private IMediaPlayer.OnPreparedListener mOnPreparedListener
@@ -492,5 +686,6 @@ public class DuoYuPlayer extends FrameLayout implements IPlayer {
             mBufferPercentage = percent;
         }
     };
+
 
 }

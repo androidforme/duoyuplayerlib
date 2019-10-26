@@ -93,6 +93,65 @@ public class DuoYuPlayerController extends AbsPlayerController implements View.O
     }
 
     /**
+     * 当播放器的播放模式发生变化时
+     * @param playMode 播放器的模式：
+     */
+    @Override
+    public void onPlayModeChanged(int playMode) {
+        switch (playMode) {
+            //普通模式
+            case ConstantKeys.PlayMode.MODE_NORMAL:
+            //    mFlLock.setVisibility(View.GONE);
+                mBack.setVisibility(View.VISIBLE);
+                mFullScreen.setImageResource(R.drawable.icon_biggest);
+                mFullScreen.setVisibility(View.VISIBLE);
+            //    mClarity.setVisibility(View.GONE);
+            //    setTopVisibility(mIsTopAndBottomVisibility);
+            //    mLlHorizontal.setVisibility(View.GONE);
+            //    unRegisterBatterReceiver();
+            //    mIsLock = false;
+//                if (mOnPlayerTypeListener!=null){
+//                    mOnPlayerTypeListener.onNormal();
+//                }
+                break;
+            //全屏模式
+            case ConstantKeys.PlayMode.MODE_FULL_SCREEN:
+            //    mFlLock.setVisibility(View.VISIBLE);
+                mBack.setVisibility(View.VISIBLE);
+                mFullScreen.setVisibility(View.VISIBLE);
+                mFullScreen.setImageResource(R.drawable.icon_smallest);
+//                if (clarities != null && clarities.size() > 1) {
+//                    mClarity.setVisibility(View.VISIBLE);
+//                }
+           //     mLlTopOther.setVisibility(GONE);
+//                if (mIsTopAndBottomVisibility){
+//                    mLlHorizontal.setVisibility(View.VISIBLE);
+//                    mIvHorTv.setVisibility(mIsTvIconVisibility?VISIBLE:GONE);
+//                    mIvHorAudio.setVisibility(mIsAudioIconVisibility?VISIBLE:GONE);
+//                }else {
+//                    mLlHorizontal.setVisibility(View.GONE);
+//                }
+//                registerBatterReceiver();
+//                if (mOnPlayerTypeListener!=null){
+//                    mOnPlayerTypeListener.onFullScreen();
+//                }
+                break;
+            //小窗口模式
+            case ConstantKeys.PlayMode.MODE_TINY_WINDOW:
+//                mFlLock.setVisibility(View.GONE);
+//                mBack.setVisibility(View.VISIBLE);
+//                mClarity.setVisibility(View.GONE);
+//                mIsLock = false;
+//                if (mOnPlayerTypeListener!=null){
+//                    mOnPlayerTypeListener.onTinyWindow();
+//                }
+                break;
+            default:
+                break;
+        }
+    }
+
+    /**
      * 初始化操作
      */
     private void init() {
@@ -106,12 +165,14 @@ public class DuoYuPlayerController extends AbsPlayerController implements View.O
         mTop = findViewById(R.id.top);
         mLoading = findViewById(R.id.loading);
         mLoadText = mLoading.findViewById(R.id.load_text);
-
+        mBack = mTop.findViewById(R.id.back);
+        mTitle = mTop.findViewById(R.id.title);
         mTime = mTop.findViewById(R.id.time);
 
         mBottom = findViewById(R.id.bottom);
         mRestartPause = mBottom.findViewById(R.id.restart_or_pause);
         mSeek = mBottom.findViewById(R.id.seek);
+        mFullScreen = mBottom.findViewById(R.id.full_screen);
         mPosition = mBottom.findViewById(R.id.position);
         mDuration = mBottom.findViewById(R.id.duration);
         mLine = findViewById(R.id.line);
@@ -120,7 +181,7 @@ public class DuoYuPlayerController extends AbsPlayerController implements View.O
 
     private void initListener() {
         //   mCenterStart.setOnClickListener(this);
-        //   mBack.setOnClickListener(this);
+           mBack.setOnClickListener(this);
 
         //   mIvDownload.setOnClickListener(this);
         //    mIvShare.setOnClickListener(this);
@@ -131,7 +192,7 @@ public class DuoYuPlayerController extends AbsPlayerController implements View.O
         //     mIvHorTv.setOnClickListener(this);
 
         mRestartPause.setOnClickListener(this);
-        //   mFullScreen.setOnClickListener(this);
+        mFullScreen.setOnClickListener(this);
         //    mClarity.setOnClickListener(this);
         //     mRetry.setOnClickListener(this);
         //     mReplay.setOnClickListener(this);
@@ -151,10 +212,10 @@ public class DuoYuPlayerController extends AbsPlayerController implements View.O
             @Override
             public void onStopTrackingTouch(SeekBar seekBar) {
                 if (mPlayer.isBufferingPaused() || mPlayer.isPaused()) {
-                    //   mPlayer.restart();
+                    mPlayer.restart();
                 }
                 long position = (long) (mPlayer.getDuration() * seekBar.getProgress() / 100f);
-                //    mPlayer.seekTo(position);
+                mPlayer.seekTo(position);
                 startDismissTopBottomTimer();
             }
         });
@@ -163,7 +224,26 @@ public class DuoYuPlayerController extends AbsPlayerController implements View.O
 
     @Override
     public void reset() {
+        topBottomVisible = false;
+        cancelUpdateProgressTimer();
+        cancelDismissTopBottomTimer();
+        mSeek.setProgress(0);
+        mSeek.setSecondaryProgress(0);
 
+        //    mCenterStart.setVisibility(View.VISIBLE);
+        //    mImage.setVisibility(View.VISIBLE);
+
+        mBottom.setVisibility(View.GONE);
+        mFullScreen.setImageResource(R.drawable.icon_biggest);
+
+        //    mLength.setVisibility(View.VISIBLE);
+
+        mTop.setVisibility(View.VISIBLE);
+        //    mBack.setVisibility(View.GONE);
+
+        mLoading.setVisibility(View.GONE);
+        //    mError.setVisibility(View.GONE);
+        //    mCompleted.setVisibility(View.GONE);
     }
 
     /**
@@ -224,7 +304,7 @@ public class DuoYuPlayerController extends AbsPlayerController implements View.O
 
     private void statePaused() {
         mLoading.setVisibility(View.GONE);
-    //    mCenterStart.setVisibility(mIsCenterPlayerVisibility ? View.VISIBLE : View.GONE);
+        //    mCenterStart.setVisibility(mIsCenterPlayerVisibility ? View.VISIBLE : View.GONE);
         mRestartPause.setImageResource(R.drawable.icon_play);
         cancelDismissTopBottomTimer();
         cancelUpdateNetSpeedTimer();
@@ -247,6 +327,11 @@ public class DuoYuPlayerController extends AbsPlayerController implements View.O
         // 更新时间
         mTime.setText(new SimpleDateFormat("HH:mm", Locale.CHINA).format(new Date()));
 
+    }
+
+    @Override
+    public void setTitle(String title) {
+        mTitle.setText(title);
     }
 
     private void stateBufferingPlaying() {
@@ -311,6 +396,33 @@ public class DuoYuPlayerController extends AbsPlayerController implements View.O
                 Toast.makeText(mContext, "请检测是否有网络", Toast.LENGTH_SHORT).show();
             }
 
+        }  else if (v == mBack) {
+            //退出，执行返回逻辑
+            //如果是全屏，则先退出全屏
+            if (mPlayer.isFullScreen()) {
+                mPlayer.exitFullScreen();
+            } else if (mPlayer.isTinyWindow()) {
+                //如果是小窗口，则退出小窗口
+               // mPlayer.exitTinyWindow();
+            }else {
+                //如果两种情况都不是，执行逻辑交给使用者自己实现
+//                if(mBackListener!=null){
+//                    mBackListener.onBackClick();
+//                }else {
+//                    VideoLogUtil.d("返回键逻辑，如果是全屏，则先退出全屏；如果是小窗口，则退出小窗口；如果两种情况都不是，执行逻辑交给使用者自己实现");
+//                }
+            }
+        } else if(v== mFullScreen) {
+            //全屏模式，重置锁屏，设置为未选中状态
+            if (mPlayer.isNormal() || mPlayer.isTinyWindow()) {
+//                mFlLock.setVisibility(VISIBLE);
+//                mIsLock = false;
+//                mIvLock.setImageResource(R.drawable.player_unlock_btn);
+                mPlayer.enterFullScreen();
+            } else if (mPlayer.isFullScreen()) {
+            //    mFlLock.setVisibility(GONE);
+                mPlayer.exitFullScreen();
+            }
         } else if (v == this) {
             if (mPlayer.isPlaying() || mPlayer.isPaused()
                     || mPlayer.isBufferingPlaying() || mPlayer.isBufferingPaused()) {

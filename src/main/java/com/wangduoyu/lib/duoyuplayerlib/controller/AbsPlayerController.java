@@ -32,6 +32,13 @@ public abstract class AbsPlayerController extends FrameLayout {
         mPlayer = player;
     }
 
+    /**
+     * 当播放器的播放模式发生变化，在此方法中更新不同模式下的控制器界面。
+     *
+     * @param playMode 播放器的模式：
+     */
+    public abstract void onPlayModeChanged(int playMode);
+
 
     /**
      * 重置控制器，将控制器恢复到初始状态。
@@ -44,6 +51,13 @@ public abstract class AbsPlayerController extends FrameLayout {
      * 更新进度，包括进度条进度，展示的当前播放位置时长，总时长等。
      */
     protected abstract void updateProgress();
+
+    /**
+     * 设置播放的视频的标题
+     *
+     * @param title 视频标题
+     */
+    public abstract void setTitle(String title);
 
     /**
      * 开启更新进度的计时器。

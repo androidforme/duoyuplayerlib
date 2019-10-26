@@ -102,9 +102,9 @@ public final class ConstantKeys {
      */
     @Retention(RetentionPolicy.SOURCE)
     public @interface PlayMode {
-        int MODE_NORMAL = 1001;
-        int MODE_FULL_SCREEN = 1002;
-        int MODE_TINY_WINDOW = 1003;
+        int MODE_NORMAL = 1001;  //普通模式
+        int MODE_FULL_SCREEN = 1002; //全屏模式
+        int MODE_TINY_WINDOW = 1003;  // 小窗口模式
     }
 
 
