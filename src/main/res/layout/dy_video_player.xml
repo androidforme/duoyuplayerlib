@@ -10,7 +10,12 @@
     <include layout="@layout/dy_video_player_top"/>
     <!--底部控制区-->
     <include layout="@layout/dy_video_player_bottom"/>
-
+    <!--改变播放位置-->
+    <include layout="@layout/dy_video_player_change_position"/>
+    <!--改变亮度-->
+    <include layout="@layout/dy_video_player_change_brightness"/>
+    <!--改变声音-->
+    <include layout="@layout/dy_video_player_change_volume"/>
     <!--底部视频播放进度条-->
     <include layout="@layout/dy_video_player_line"/>
 </RelativeLayout>

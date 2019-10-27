@@ -88,6 +88,34 @@ public interface IPlayer {
      */
     void seekTo(long pos);
 
+    /**
+     * 获取最大音量
+     *
+     * @return 最大音量值
+     */
+    int getMaxVolume();
+
+    /**
+     * 获取当前播放状态
+     *
+     * @return  播放状态
+     */
+    int getPlayType();
+
+    /**
+     * 设置音量
+     *
+     * @param volume 音量值
+     */
+    void setVolume(int volume);
+
+    /**
+     * 获取当前音量
+     *
+     * @return 当前音量值
+     */
+    int getVolume();
+
     /**------------------以下9个方法是播放器在当前的播放状态----------------------------*/
     boolean isIdle();
     boolean isPreparing();

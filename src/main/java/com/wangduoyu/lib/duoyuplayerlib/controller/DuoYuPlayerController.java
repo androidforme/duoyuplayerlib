@@ -62,9 +62,11 @@ public class DuoYuPlayerController extends AbsPlayerController implements View.O
     private TextView mChangePositionCurrent;
     private ProgressBar mChangePositionProgress;
     private LinearLayout mChangeBrightness;
+    private TextView mChangeBrightnessText;
     private ProgressBar mChangeBrightnessProgress;
     private LinearLayout mChangeVolume;
     private ProgressBar mChangeVolumeProgress;
+    private TextView mChangeVolumeText;
     private LinearLayout mError;
     private TextView mTvError;
     private TextView mRetry;
@@ -94,6 +96,7 @@ public class DuoYuPlayerController extends AbsPlayerController implements View.O
 
     /**
      * 当播放器的播放模式发生变化时
+     *
      * @param playMode 播放器的模式：
      */
     @Override
@@ -101,29 +104,29 @@ public class DuoYuPlayerController extends AbsPlayerController implements View.O
         switch (playMode) {
             //普通模式
             case ConstantKeys.PlayMode.MODE_NORMAL:
-            //    mFlLock.setVisibility(View.GONE);
+                //    mFlLock.setVisibility(View.GONE);
                 mBack.setVisibility(View.VISIBLE);
                 mFullScreen.setImageResource(R.drawable.icon_biggest);
                 mFullScreen.setVisibility(View.VISIBLE);
-            //    mClarity.setVisibility(View.GONE);
-            //    setTopVisibility(mIsTopAndBottomVisibility);
-            //    mLlHorizontal.setVisibility(View.GONE);
-            //    unRegisterBatterReceiver();
-            //    mIsLock = false;
+                //    mClarity.setVisibility(View.GONE);
+                //    setTopVisibility(mIsTopAndBottomVisibility);
+                //    mLlHorizontal.setVisibility(View.GONE);
+                //    unRegisterBatterReceiver();
+                //    mIsLock = false;
 //                if (mOnPlayerTypeListener!=null){
 //                    mOnPlayerTypeListener.onNormal();
 //                }
                 break;
             //全屏模式
             case ConstantKeys.PlayMode.MODE_FULL_SCREEN:
-            //    mFlLock.setVisibility(View.VISIBLE);
+                //    mFlLock.setVisibility(View.VISIBLE);
                 mBack.setVisibility(View.VISIBLE);
                 mFullScreen.setVisibility(View.VISIBLE);
                 mFullScreen.setImageResource(R.drawable.icon_smallest);
 //                if (clarities != null && clarities.size() > 1) {
 //                    mClarity.setVisibility(View.VISIBLE);
 //                }
-           //     mLlTopOther.setVisibility(GONE);
+                //     mLlTopOther.setVisibility(GONE);
 //                if (mIsTopAndBottomVisibility){
 //                    mLlHorizontal.setVisibility(View.VISIBLE);
 //                    mIvHorTv.setVisibility(mIsTvIconVisibility?VISIBLE:GONE);
@@ -169,6 +172,18 @@ public class DuoYuPlayerController extends AbsPlayerController implements View.O
         mTitle = mTop.findViewById(R.id.title);
         mTime = mTop.findViewById(R.id.time);
 
+        mChangeVolume = findViewById(R.id.change_volume);
+        mChangeVolumeProgress = mChangeVolume.findViewById(R.id.change_volume_progress);
+        mChangeVolumeText = mChangeVolume.findViewById(R.id.change_volume_text);
+
+        mChangePosition = findViewById(R.id.change_position);
+        mChangePositionCurrent = findViewById(R.id.change_position_current);
+        mChangePositionProgress = findViewById(R.id.change_position_progress);
+
+        mChangeBrightness = findViewById(R.id.change_brightness);
+        mChangeBrightnessText =  mChangeBrightness.findViewById(R.id.change_brightness_text);
+        mChangeBrightnessProgress = mChangeBrightness.findViewById(R.id.change_brightness_progress);
+
         mBottom = findViewById(R.id.bottom);
         mRestartPause = mBottom.findViewById(R.id.restart_or_pause);
         mSeek = mBottom.findViewById(R.id.seek);
@@ -181,7 +196,7 @@ public class DuoYuPlayerController extends AbsPlayerController implements View.O
 
     private void initListener() {
         //   mCenterStart.setOnClickListener(this);
-           mBack.setOnClickListener(this);
+        mBack.setOnClickListener(this);
 
         //   mIvDownload.setOnClickListener(this);
         //    mIvShare.setOnClickListener(this);
@@ -244,6 +259,20 @@ public class DuoYuPlayerController extends AbsPlayerController implements View.O
         mLoading.setVisibility(View.GONE);
         //    mError.setVisibility(View.GONE);
         //    mCompleted.setVisibility(View.GONE);
+    }
+
+    /**
+     * 注意：跟重置有区别
+     * 控制器意外销毁，比如手动退出，意外崩溃等等
+     */
+    @Override
+    public void destroy() {
+        //当播放完成就解除广播
+        //   unRegisterNetChangedReceiver();
+        //    unRegisterBatterReceiver();
+        //结束timer
+        cancelUpdateProgressTimer();
+        cancelUpdateNetSpeedTimer();
     }
 
     /**
@@ -330,6 +359,66 @@ public class DuoYuPlayerController extends AbsPlayerController implements View.O
     }
 
     @Override
+    protected void showChangePosition(long duration, int newPositionProgress) {
+        mChangePosition.setVisibility(View.VISIBLE);
+        long newPosition = (long) (duration * newPositionProgress / 100f);
+        mChangePositionCurrent.setText(VideoPlayerUtils.formatTime(newPosition));
+        mChangePositionProgress.setProgress(newPositionProgress);
+        mSeek.setProgress(newPositionProgress);
+        mPbPlayBar.setProgress(newPositionProgress);
+        mPosition.setText(VideoPlayerUtils.formatTime(newPosition));
+    }
+
+    /**
+     * 隐藏视频播放位置
+     */
+    @Override
+    protected void hideChangePosition() {
+        //隐藏
+        mChangePosition.setVisibility(View.GONE);
+    }
+
+    /**
+     * 展示视频播放音量
+     *
+     * @param newVolumeProgress 新的音量进度，取值1到100。
+     */
+    @Override
+    protected void showChangeVolume(int newVolumeProgress) {
+        mChangeVolume.setVisibility(View.VISIBLE);
+        mChangeVolumeText.setText(newVolumeProgress + "%");
+        mChangeVolumeProgress.setProgress(newVolumeProgress);
+    }
+
+    /**
+     * 隐藏视频播放音量
+     */
+    @Override
+    protected void hideChangeVolume() {
+        mChangeVolume.setVisibility(View.GONE);
+    }
+
+    /**
+     * 展示视频播放亮度
+     *
+     * @param newBrightnessProgress 新的亮度进度，取值1到100。
+     */
+    @Override
+    protected void showChangeBrightness(int newBrightnessProgress) {
+        mChangeBrightness.setVisibility(View.VISIBLE);
+        mChangeBrightnessText.setText(newBrightnessProgress + "%");
+        mChangeBrightnessProgress.setProgress(newBrightnessProgress);
+    }
+
+    /**
+     * 隐藏视频播放亮度
+     */
+    @Override
+    protected void hideChangeBrightness() {
+        mChangeBrightness.setVisibility(View.GONE);
+    }
+
+    @Override
     public void setTitle(String title) {
         mTitle.setText(title);
     }
@@ -396,15 +485,15 @@ public class DuoYuPlayerController extends AbsPlayerController implements View.O
                 Toast.makeText(mContext, "请检测是否有网络", Toast.LENGTH_SHORT).show();
             }
 
-        }  else if (v == mBack) {
+        } else if (v == mBack) {
             //退出，执行返回逻辑
             //如果是全屏，则先退出全屏
             if (mPlayer.isFullScreen()) {
                 mPlayer.exitFullScreen();
             } else if (mPlayer.isTinyWindow()) {
                 //如果是小窗口，则退出小窗口
-               // mPlayer.exitTinyWindow();
-            }else {
+                // mPlayer.exitTinyWindow();
+            } else {
                 //如果两种情况都不是，执行逻辑交给使用者自己实现
 //                if(mBackListener!=null){
 //                    mBackListener.onBackClick();
@@ -412,7 +501,7 @@ public class DuoYuPlayerController extends AbsPlayerController implements View.O
 //                    VideoLogUtil.d("返回键逻辑，如果是全屏，则先退出全屏；如果是小窗口，则退出小窗口；如果两种情况都不是，执行逻辑交给使用者自己实现");
 //                }
             }
-        } else if(v== mFullScreen) {
+        } else if (v == mFullScreen) {
             //全屏模式，重置锁屏，设置为未选中状态
             if (mPlayer.isNormal() || mPlayer.isTinyWindow()) {
 //                mFlLock.setVisibility(VISIBLE);
@@ -420,7 +509,7 @@ public class DuoYuPlayerController extends AbsPlayerController implements View.O
 //                mIvLock.setImageResource(R.drawable.player_unlock_btn);
                 mPlayer.enterFullScreen();
             } else if (mPlayer.isFullScreen()) {
-            //    mFlLock.setVisibility(GONE);
+                //    mFlLock.setVisibility(GONE);
                 mPlayer.exitFullScreen();
             }
         } else if (v == this) {

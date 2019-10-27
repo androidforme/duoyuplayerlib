@@ -15,6 +15,7 @@ import android.view.TextureView;
 import android.view.ViewGroup;
 import android.widget.FrameLayout;
 
+import com.danikula.videocache.HttpProxyCacheServer;
 import com.gyf.immersionbar.BarHide;
 import com.gyf.immersionbar.ImmersionBar;
 import com.wangduoyu.lib.duoyuplayerlib.constant.ConstantKeys;
@@ -281,7 +282,6 @@ public class DuoYuPlayer extends FrameLayout implements IPlayer {
 
     @Override
     public void setSpeed(float speed) {
-
     }
 
     @Override
@@ -389,6 +389,44 @@ public class DuoYuPlayer extends FrameLayout implements IPlayer {
         if (mMediaPlayer != null) {
             mMediaPlayer.seekTo(pos);
         }
+    }
+
+    /**
+     * 获取最大音量
+     * @return                  音量值
+     */
+    @Override
+    public int getMaxVolume() {
+        if (mAudioManager != null) {
+            return mAudioManager.getStreamMaxVolume(AudioManager.STREAM_MUSIC);
+        }
+        return 0;
+    }
+
+    /**
+     * 获取当前播放状态
+     *
+     * @return  播放状态
+     */
+    @Override
+    public int getPlayType() {
+        return mCurrentMode;
+    }
+
+    /**
+     * 设置音量
+     * @param volume                音量值
+     */
+    @Override
+    public void setVolume(int volume) {
+        if (mAudioManager != null) {
+            mAudioManager.setStreamVolume(AudioManager.STREAM_MUSIC, volume, 0);
+        }
+    }
+
+    @Override
+    public int getVolume() {
+        return 0;
     }
 
     /**
@@ -688,4 +726,24 @@ public class DuoYuPlayer extends FrameLayout implements IPlayer {
     };
 
 
+    @Override
+    protected void onAttachedToWindow() {
+        super.onAttachedToWindow();
+        DuoYuLog.d("onAttachedToWindow");
+        //init();
+        //在构造函数初始化时addView
+    }
+
+    @Override
+    protected void onDetachedFromWindow() {
+        super.onDetachedFromWindow();
+        DuoYuLog.d("onDetachedFromWindow");
+        if (mController!=null){
+            mController.destroy();
+        }
+        //onDetachedFromWindow方法是在Activity destroy的时候被调用的，也就是act对应的window被删除的时候，
+        //且每个view只会被调用一次，父view的调用在后，也不论view的visibility状态都会被调用，适合做最后的清理操作
+        //防止开发者没有在onDestroy中没有做销毁视频的优化
+        release();
+    }
 }
