@@ -1,7 +1,9 @@
 apply plugin: 'com.android.library'
 
+
+def deps = rootProject.ext.app
 android {
-    compileSdkVersion 28
+    compileSdkVersion rootProject.ext.compileSdkVersion
 
 
     defaultConfig {
@@ -27,10 +29,10 @@ android {
 dependencies {
     implementation fileTree(dir: 'libs', include: ['*.jar'])
 
-    api 'androidx.appcompat:appcompat:1.1.0'
+    api deps.appcompat
 
     // 基础依赖包，必须要依赖  https://github.com/gyf-dev/ImmersionBar
-    implementation 'com.gyf.immersionbar:immersionbar:3.0.0'
+    implementation deps.immersionbar
 // fragment快速实现（可选）
  //   implementation 'com.gyf.immersionbar:immersionbar-components:3.0.0'
 // kotlin扩展（可选）
